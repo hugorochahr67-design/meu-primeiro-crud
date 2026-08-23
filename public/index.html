@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Portfólio - CRUD de Tarefas</title>
+    <style>
+    body { background-color: #f3f4f6; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; font-family: sans-serif; }
+    .card { background: white; padding: 2rem; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); w-width: 100%; max-width: 28rem; }
+    .titulo { font-size: 1.5rem; font-weight: bold; color: #1f2937; margin-bottom: 1.5rem; text-align: center; }
+    .form-flex { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .input-tarefa { flex: 1; padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.5rem; outline: none; }
+    .btn-add { background-color: #3b82f6; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; border: none; cursor: pointer; }
+    .btn-add:hover { background-color: #2563eb; }
+    .lista { list-style: none; padding: 0; margin: 0; }
+    .item-tarefa { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; background-color: #f9fafb; border-radius: 0.5rem; border: 1px solid #e5e7eb; margin-bottom: 0.75rem; }
+    .flex-gap { display: flex; align-items: center; gap: 0.75rem; }
+    .concluida { text-decoration: line-through; color: #9ca3af; }
+    .btn-del { color: #ef4444; border: none; background: none; cursor: pointer; font-weight: 600; }
+    .btn-del:hover { color: #b91c1c; }
+    .checkbox { width: 1.25rem; height: 1.25rem; cursor: pointer; }
+</style>
+
+</head>
+<body class="">
+    <div class="card">
+        <h1 class="titulo">📝 Gerenciador de Tarefas</h1>
+
+        <form action="/tarefas" method="POST" class="form-flex">
+            <input type="text" name="titulo" placeholder="Nova tarefa..." required class="input-tarefa">
+            <button type="submit" class="btn-add">Adicionar</button>
+        </form>
+
+        <ul id="lista-tarefas" class="lista"></ul>
+    </div>
+
+
+  <script>
+    // 1. Essa função busca as tarefas que estão guardadas lá no servidor backend
+    async function carregarTarefas() {
+        const resposta = await fetch('/api/tarefas');
+        const tarefas = await resposta.json();
+        const lista = document.getElementById('lista-tarefas');
+        lista.innerHTML = '';
+
+        // Se não tiver nenhuma tarefa, mostra o aviso na tela
+        if (tarefas.length === 0) {
+            lista.innerHTML = '<p style="color: #6b7280; text-align: center; font-size: 0.875rem;">Nenhuma tarefa por aqui ainda!</p>';
+            return;
+        }
+
+        // Se tiver tarefas, desenha cada uma delas dentro da lista
+        tarefas.forEach(tarefa => {
+            const li = document.createElement('li');
+            li.className = "item-tarefa";
+            
+            li.innerHTML = `
+                <div class="flex-gap">
+                    <form action="/tarefas/${tarefa.id}/toggle" method="POST">
+                        <button type="submit" style="background:none; border:none; padding:0; display:flex;">
+                            <input type="checkbox" ${tarefa.concluida ? 'checked' : ''} class="checkbox" style="pointer-events:none;">
+                        </button>
+                    </form>
+                    <span class="${tarefa.concluida ? 'concluida' : ''}" style="font-weight: 500;">
+                        ${tarefa.titulo}
+                    </span>
+                </div>
+
+                <form action="/tarefas/${tarefa.id}/deletar" method="POST">
+                    <button type="submit" class="btn-del">Excluir</button>
+                </form>
+            `;
+            lista.appendChild(li);
+        });
+    }
+
+    // 2. Executa a função para carregar as tarefas assim que abre o site
+    carregarTarefas();
+
+    // 3. Fica atualizando a lista a cada 1 segundo automaticamente
+    setInterval(carregarTarefas, 1000);
+</script>
+
+</body>
+</html>
